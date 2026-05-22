@@ -1,5 +1,3 @@
-
-
 import math
 import re
 import sys
@@ -7,6 +5,8 @@ import tempfile
 from pathlib import Path
 
 import pygame
+
+import os
 
 
 pygame.init()
@@ -40,7 +40,7 @@ TOWER_TYPES = {
         "color": (68, 118, 190),
         "projectile_color": (255, 225, 115),
         "projectile_speed": 395,
-        "size": 18,
+        "size": 18
     },
     "boxer": {
         "label": "Boxer",
@@ -88,6 +88,37 @@ BASE_PATH_POINTS = [
     (766, 148), (790, 186), (790, 462), (620, 462), (492, 448),
     (144, 448), (94, 512), (28, 554),
 ]
+
+
+# Load in image and place it on the map 
+SPRITE_IMAGES = {
+    "alien": "Assets/alien.png",
+    "ufo": "Assets/ufo.png",
+    "samurai": "Assets/samurai.png",
+}   
+
+def load_art_surfaces():
+    surfaces = {}
+
+    for name, filename in SPRITE_IMAGES.items():
+        image = pygame.image.load(filename).convert_alpha()
+
+        # Different sizes for enemies
+        if name == "alien":
+            image = pygame.transform.scale(image, (80, 80))
+
+        elif name == "ufo":
+            image = pygame.transform.scale(image, (70, 50))
+        
+        elif name == "samurai":
+            image = pygame.transform.scale(image, (60, 80))
+
+        surfaces[name] = image
+
+    return surfaces
+
+
+ART_SURFACES = load_art_surfaces()
 
 
 def build_buttons():
@@ -167,31 +198,13 @@ def load_svg_surface(svg_markup, size, fallback_color):
     finally:
         Path(temp_path).unlink(missing_ok=True)
 
-
-def load_art_surfaces():
-    default = {
-        "alien": load_svg_surface('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160"></svg>', (52, 70), (76, 196, 76)),
-        "ufo": load_svg_surface('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 120"></svg>', (96, 44), (150, 160, 220)),
-    }
-
-    if not ART_FILE.exists():
-        return default
-
-    svgs = extract_svg_assets(ART_FILE)
-    if "alien" in svgs:
-        default["alien"] = load_svg_surface(svgs["alien"], (52, 70), (76, 196, 76))
-    if "ufo" in svgs:
-        default["ufo"] = load_svg_surface(svgs["ufo"], (96, 44), (150, 160, 220))
-    return default
-
-
-ART_SURFACES = load_art_surfaces()
-
-
 class Enemy:
     def __init__(self, skin_name):
         self.skin_name = skin_name
+
+        # Set enemy image
         self.sprite = ART_SURFACES[skin_name]
+
         self.pos = pygame.Vector2(PATH_POINTS[0])
         self.index = 1
         self.speed = 102 if skin_name == "alien" else 136
@@ -201,7 +214,7 @@ class Enemy:
         self.reached = False
         self.reward = 12 if skin_name == "alien" else 10
         self.direction = pygame.Vector2(1, 0)
-
+        
     @property
     def radius(self):
         return max(self.sprite.get_width(), self.sprite.get_height()) // 3
@@ -567,7 +580,7 @@ def main():
     wave_count = 0
     last_spawn = pygame.time.get_ticks()
     next_skin = 0
-    skins = ["alien", "ufo"]
+    skins = ["alien", "ufo", "samurai"]
     running = True
 
     while running:
@@ -661,4 +674,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
 
